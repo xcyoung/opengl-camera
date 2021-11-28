@@ -8,23 +8,21 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-/**
- * @author ChorYeung
- * @since 2021/11/24
- */
-class ScreenFilter(context: Context): Filter {
+class WhiteBalanceFilter(context: Context): Filter {
     private val vPosition: Int
     private val vCoord: Int
     private val vTexture: Int
     private val vMatrix: Int
-//    private val vTemperature: Int
+    private val vTemperature: Int
+    private val vTint: Int
     private var mtx: FloatArray = FloatArray(16)
     private var mWidth: Int = 0
     private var mHeight: Int = 0
 
     private val textureBuffer: FloatBuffer
     private val vertexBuffer: FloatBuffer
-//    private val temperature: Float = 5050.0f
+    var temperature: Float = 5000f
+    var tint: Float = 0.0f
 
     //顶点坐标
     private val VERTEX = floatArrayOf(
@@ -62,7 +60,7 @@ class ScreenFilter(context: Context): Filter {
         textureBuffer.put(TEXTURE)
 
         val vertexShader = OpenGLUtils.readRawTextFile(context, R.raw.camera_vert)
-        val textureShader = OpenGLUtils.readRawTextFile(context, R.raw.camera_frag)
+        val textureShader = OpenGLUtils.readRawTextFile(context, R.raw.white_blance_frag)
 
         program = OpenGLUtils.loadProgram(vertexShader, textureShader)
 
@@ -70,7 +68,8 @@ class ScreenFilter(context: Context): Filter {
         vCoord = GLES20.glGetAttribLocation(program, "vCoord")
         vTexture = GLES20.glGetUniformLocation(program, "vTexture")
         vMatrix = GLES20.glGetUniformLocation(program, "vMatrix")
-//        vTemperature = GLES20.glGetUniformLocation(program, "temperature")
+        vTemperature = GLES20.glGetUniformLocation(program, "temperature")
+        vTint = GLES20.glGetUniformLocation(program, "tint")
     }
 
     override fun onDrawFrame(textureId: Int): Int {
@@ -92,11 +91,13 @@ class ScreenFilter(context: Context): Filter {
         // 3.3 变化矩阵传值
         GLES20.glUniformMatrix4fv(vMatrix, 1, false, mtx, 0)
 
-//        GLES20.glUniform1f(
-//            vTemperature,
-//            if (this.temperature < 5000) (0.0004 * (this.temperature - 5000.0)).toFloat()
-//            else (0.00006 * (this.temperature - 5000.0)).toFloat()
-//        )
+        GLES20.glUniform1f(
+            vTemperature,
+            if (this.temperature < 5000) (0.0004 * (this.temperature - 5000.0)).toFloat()
+            else (0.00006 * (this.temperature - 5000.0)).toFloat()
+        )
+
+        GLES20.glUniform1f(vTint, this.tint / 100.0f)
 
         // 3.4 给片元着色器中的 采样器绑定
         // 激活图层

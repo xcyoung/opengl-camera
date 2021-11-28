@@ -23,20 +23,23 @@ class GLCameraRender(private val context: Context, private val callback: Callbac
     private var surfaceTexture: SurfaceTexture? = null
     private var textureMatrix: FloatArray = FloatArray(16)
     private val executor = Executors.newSingleThreadExecutor()
-    private var screenFilter: ScreenFilter? = null
-
+    private var filter: Filter? = null
+    var type: String = "Normal"
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         gl?.let {
             it.glGenTextures(textures.size, textures, 0)
             surfaceTexture = SurfaceTexture(textures[0])
-            screenFilter = ScreenFilter(context)
+            filter = when(type) {
+                "WhiteBalance" -> WhiteBalanceFilter(context)
+                else -> ScreenFilter(context)
+            }
         }
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         callback.onSurfaceChanged()
-        screenFilter?.onReady(width, height)
+        filter?.onReady(width, height)
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -46,8 +49,8 @@ class GLCameraRender(private val context: Context, private val callback: Callbac
         gl.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         surfaceTexture.updateTexImage()
         surfaceTexture.getTransformMatrix(textureMatrix)
-        screenFilter?.setTransformMatrix(textureMatrix)
-        screenFilter?.onDrawFrame(textures[0])
+        filter?.setTransformMatrix(textureMatrix)
+        filter?.onDrawFrame(textures[0])
     }
 
     override fun onSurfaceRequested(request: SurfaceRequest) {
@@ -70,6 +73,18 @@ class GLCameraRender(private val context: Context, private val callback: Callbac
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
         callback.onFrameAvailable()
+    }
+
+    fun setProgress(progress: Float) {
+        if (filter is WhiteBalanceFilter) {
+            (filter as WhiteBalanceFilter).temperature = progress
+        }
+    }
+
+    fun setTint(progress: Float) {
+        if (filter is WhiteBalanceFilter) {
+            (filter as WhiteBalanceFilter).tint = progress
+        }
     }
 
     interface Callback {

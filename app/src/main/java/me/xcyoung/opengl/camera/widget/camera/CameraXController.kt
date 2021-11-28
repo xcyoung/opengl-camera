@@ -2,6 +2,7 @@ package me.xcyoung.opengl.camera.widget.camera
 
 import android.content.Context
 import android.util.Size
+import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
@@ -22,7 +23,7 @@ class CameraXController {
 
             val imageCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                .setTargetResolution(Size(1080, 1440))
+                .setTargetResolution(Size(480, 640))
 //                .setTargetRotation(this.display.rotation)
                 .build()
 

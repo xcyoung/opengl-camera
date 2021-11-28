@@ -126,7 +126,7 @@ public class OpenGLUtils {
         if (status[0] != GLES20.GL_TRUE) {
             //失败
             throw new IllegalStateException("load fragment shader:" + GLES20.glGetShaderInfoLog
-                    (vShader));
+                    (fShader));
         }
 
 
